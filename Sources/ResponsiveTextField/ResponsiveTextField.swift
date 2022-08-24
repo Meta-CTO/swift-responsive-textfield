@@ -121,6 +121,8 @@ public struct ResponsiveTextField {
     /// If the provided type does not implement a particular editing action, the default `UITextField`
     /// behaviour will be called.
     var standardEditActionHandler: StandardEditActionHandling<UITextField>?
+    
+    var textFormatter: ((String) -> String)?
 
     public init(
         placeholder: String,
@@ -134,7 +136,8 @@ public struct ResponsiveTextField {
         handleDelete: ((String) -> Void)? = nil,
         shouldChange: ((String, String) -> Bool)? = nil,
         supportedStandardEditActions: Set<StandardEditAction>? = nil,
-        standardEditActionHandler: StandardEditActionHandling<UITextField>? = nil
+        standardEditActionHandler: StandardEditActionHandling<UITextField>? = nil,
+        textFormatter: ((String) -> String)? = nil
     ) {
         self.placeholder = placeholder
         self.text = text
@@ -148,6 +151,7 @@ public struct ResponsiveTextField {
         self.shouldChange = shouldChange
         self.supportedStandardEditActions = supportedStandardEditActions
         self.standardEditActionHandler = standardEditActionHandler
+        self.textFormatter = textFormatter
     }
 }
 
@@ -359,6 +363,12 @@ extension ResponsiveTextField: UIViewRepresentable {
             // the demand is already fulfilled so we can just reset it.
             resetFirstResponderDemand()
         }
+        
+        if uiView.isFirstResponder, let proposedSelectedRange = context.coordinator.proposedSelectedRange {
+            uiView.selectedTextRange = proposedSelectedRange
+            context.coordinator.proposedSelectedRange = nil
+        }
+        
     }
 
     fileprivate func resetFirstResponderDemand() {
@@ -373,6 +383,7 @@ extension ResponsiveTextField: UIViewRepresentable {
 
     public class Coordinator: NSObject, UITextFieldDelegate {
         var parent: ResponsiveTextField
+        fileprivate var proposedSelectedRange: UITextRange?
 
         @Binding
         var text: String
@@ -427,14 +438,32 @@ extension ResponsiveTextField: UIViewRepresentable {
             shouldChangeCharactersIn range: NSRange,
             replacementString string: String
         ) -> Bool {
-            if let shouldChange = parent.shouldChange {
-                let currentText = textField.text ?? ""
-                guard let newRange = Range(range, in: currentText) else {
-                    return false // when would this conversion fail?
+            let currentText = textField.text ?? ""
+            
+            guard
+                let newRange = Range(range, in: currentText),
+                let selection = textField.selectedTextRange
+            else {
+                return false // when would this conversion fail?
+            }
+            
+            var newText = currentText.replacingCharacters(in: newRange, with: string)
+            
+            if let textFormatter = parent.textFormatter {
+                newText = textFormatter(newText)
+                
+                let diff = currentText.count - newText.count
+                let cursorPosition = textField.offset(from: textField.beginningOfDocument, to: selection.start) - diff
+                
+                if let newPosition = textField.position(from: textField.beginningOfDocument, offset: max(cursorPosition, 0)) {
+                    proposedSelectedRange = textField.textRange(from: newPosition, to: newPosition)
                 }
-                let newText = currentText.replacingCharacters(in: newRange, with: string)
+            }
+            
+            if let shouldChange = parent.shouldChange {
                 return shouldChange(currentText, newText)
             }
+            
             return true
         }
 
