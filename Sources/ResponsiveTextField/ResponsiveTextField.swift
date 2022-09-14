@@ -341,7 +341,7 @@ extension ResponsiveTextField: UIViewRepresentable {
         uiView.isEnabled = isEnabled
         uiView.isSecureTextEntry = isSecure
         uiView.returnKeyType = returnKeyType
-        uiView.text = text.wrappedValue
+        uiView.text = textFormatter?(text.wrappedValue)
 
         if !adjustsFontForContentSizeCategory {
             // We should only support dynamic font changes using our own environment
