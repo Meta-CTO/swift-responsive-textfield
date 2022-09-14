@@ -310,7 +310,13 @@ extension ResponsiveTextField: UIViewRepresentable {
         textField.supportedStandardEditActions = supportedStandardEditActions
         textField.standardEditActionHandler = standardEditActionHandler
         textField.placeholder = placeholder
-        textField.text = textFormatter?(text.wrappedValue)
+        
+        if let textFormatter = textFormatter {
+            textField.text = textFormatter(text.wrappedValue)
+        } else {
+            textField.text = text.wrappedValue
+        }
+        
         textField.isEnabled = isEnabled
         textField.isSecureTextEntry = isSecure
         textField.font = font
@@ -341,7 +347,12 @@ extension ResponsiveTextField: UIViewRepresentable {
         uiView.isEnabled = isEnabled
         uiView.isSecureTextEntry = isSecure
         uiView.returnKeyType = returnKeyType
-        uiView.text = textFormatter?(text.wrappedValue)
+        
+        if let textFormatter = textFormatter {
+            uiView.text = textFormatter(text.wrappedValue)
+        } else {
+            uiView.text = text.wrappedValue
+        }
 
         if !adjustsFontForContentSizeCategory {
             // We should only support dynamic font changes using our own environment
