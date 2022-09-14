@@ -310,7 +310,7 @@ extension ResponsiveTextField: UIViewRepresentable {
         textField.supportedStandardEditActions = supportedStandardEditActions
         textField.standardEditActionHandler = standardEditActionHandler
         textField.placeholder = placeholder
-        textField.text = text.wrappedValue
+        textField.text = textFormatter?(text.wrappedValue)
         textField.isEnabled = isEnabled
         textField.isSecureTextEntry = isSecure
         textField.font = font
