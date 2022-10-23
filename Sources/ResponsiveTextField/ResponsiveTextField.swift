@@ -317,6 +317,10 @@ extension ResponsiveTextField: UIViewRepresentable {
             textField.text = text.wrappedValue
         }
         
+        if textField.text != text.wrappedValue {
+            text.wrappedValue = textField.text ?? ""
+        }
+        
         textField.isEnabled = isEnabled
         textField.isSecureTextEntry = isSecure
         textField.font = font
@@ -352,6 +356,10 @@ extension ResponsiveTextField: UIViewRepresentable {
             uiView.text = textFormatter(text.wrappedValue)
         } else {
             uiView.text = text.wrappedValue
+        }
+        
+        if uiView.text != text.wrappedValue {
+            text.wrappedValue = uiView.text ?? ""
         }
 
         if !adjustsFontForContentSizeCategory {
