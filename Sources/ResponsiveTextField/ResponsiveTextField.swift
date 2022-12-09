@@ -359,7 +359,10 @@ extension ResponsiveTextField: UIViewRepresentable {
         }
         
         if uiView.text != text.wrappedValue {
-            text.wrappedValue = uiView.text ?? ""
+            //Text formatting resulted in a change, dispatch the update to the next event loop
+            DispatchQueue.main.async {
+                text.wrappedValue = uiView.text ?? ""
+            }
         }
 
         if !adjustsFontForContentSizeCategory {
