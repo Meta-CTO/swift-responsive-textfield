@@ -318,7 +318,10 @@ extension ResponsiveTextField: UIViewRepresentable {
         }
         
         if textField.text != text.wrappedValue {
-            text.wrappedValue = textField.text ?? ""
+            //Text formatting resulted in a change, dispatch the update to the next event loop
+            DispatchQueue.main.async {
+                text.wrappedValue = textField.text ?? ""
+            }
         }
         
         textField.isEnabled = isEnabled
