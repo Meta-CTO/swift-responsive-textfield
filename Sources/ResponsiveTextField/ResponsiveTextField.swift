@@ -162,8 +162,9 @@ public struct FirstResponderStateChangeHandler {
     ///
     /// - Parameters:
     ///     - Bool: A boolean indicating if the text field is now the first responder or not.
+    ///     - String: The current value of the TextField's text
     ///
-    public var handleStateChange: (Bool) -> Void
+    public var handleStateChange: (Bool, String) -> Void
 
     /// Allows fine-grained control over if the text field should become the first responder.
     ///
@@ -190,12 +191,12 @@ public struct FirstResponderStateChangeHandler {
     /// Most of the time this is the only callback that you will need to provide so this initialiser
     /// can be called with trailing closure syntax.
     ///
-    public init(handleStateChange: @escaping (Bool) -> Void) {
+    public init(handleStateChange: @escaping (Bool, String) -> Void) {
         self.handleStateChange = handleStateChange
     }
 
     public init(
-        handleStateChange: @escaping (Bool) -> Void,
+        handleStateChange: @escaping (Bool, String) -> Void,
         canBecomeFirstResponder: (() -> Bool)? = nil,
         canResignFirstResponder: (() -> Bool)? = nil
     ) {
@@ -204,8 +205,8 @@ public struct FirstResponderStateChangeHandler {
         self.canResignFirstResponder = canResignFirstResponder
     }
 
-    func callAsFunction(_ isFirstResponder: Bool) {
-        handleStateChange(isFirstResponder)
+    func callAsFunction(_ isFirstResponder: Bool, _ text: String) {
+        handleStateChange(isFirstResponder, text)
     }
 
     /// Returns a new state change handler that wraps the underlying state change handler
@@ -217,9 +218,9 @@ public struct FirstResponderStateChangeHandler {
     ///
     public func animation(animation: Animation? = .default) -> Self {
         .init(
-            handleStateChange: { isFirstResponder in
+            handleStateChange: { isFirstResponder, text in
                 withAnimation(animation) {
-                    self.handleStateChange(isFirstResponder)
+                    self.handleStateChange(isFirstResponder, text)
                 }
             },
             canBecomeFirstResponder: canBecomeFirstResponder,
@@ -259,9 +260,9 @@ public struct FirstResponderStateChangeHandler {
     ///
     public func receive<S: Scheduler>(on scheduler: S, options: S.SchedulerOptions? = nil) -> Self {
         return .init(
-            handleStateChange: { isFirstResponder in
+            handleStateChange: { isFirstResponder, text in
                 scheduler.schedule(options: options) {
-                    self.handleStateChange(isFirstResponder)
+                    self.handleStateChange(isFirstResponder, text)
                 }
             },
             canBecomeFirstResponder: canBecomeFirstResponder,
@@ -284,7 +285,7 @@ extension FirstResponderStateChangeHandler {
     ///     - binding: A binding to some Boolean state property that should be updated.
     ///
     public static func updates(_ binding: Binding<Bool>) -> Self {
-        .init { isFirstResponder in
+        .init { isFirstResponder, _ in
             binding.wrappedValue = isFirstResponder
         }
     }
@@ -430,7 +431,7 @@ extension ResponsiveTextField: UIViewRepresentable {
         }
 
         public func textFieldDidBeginEditing(_ textField: UITextField) {
-            parent.onFirstResponderStateChanged?(true)
+            parent.onFirstResponderStateChanged?(true, textField.text ?? "")
             parent.resetFirstResponderDemand()
         }
 
@@ -446,7 +447,7 @@ extension ResponsiveTextField: UIViewRepresentable {
         }
 
         public func textFieldDidEndEditing(_ textField: UITextField) {
-            parent.onFirstResponderStateChanged?(false)
+            parent.onFirstResponderStateChanged?(false, textField.text ?? "")
             parent.resetFirstResponderDemand()
         }
 
