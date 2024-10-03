@@ -477,13 +477,17 @@ extension ResponsiveTextField: UIViewRepresentable {
             
             if let textFormatter = parent.textFormatter {
                 newText = textFormatter(newText)
-                
-                let diff = currentText.count - newText.count
-                let cursorPosition = textField.offset(from: textField.beginningOfDocument, to: selection.start) - diff
-                
-                if let newPosition = textField.position(from: textField.beginningOfDocument, offset: max(cursorPosition, 0)) {
-                    proposedSelectedRange = textField.textRange(from: newPosition, to: newPosition)
-                }
+            }
+            
+            let newCursorPositionOffset: Int
+            if string.isEmpty {
+                newCursorPositionOffset = range.location
+            } else {
+                newCursorPositionOffset = range.location + string.count
+            }
+            
+            if let newPosition = textField.position(from: textField.beginningOfDocument, offset: newCursorPositionOffset) {
+                proposedSelectedRange = textField.textRange(from: newPosition, to: newPosition)
             }
             
             if let shouldChange = parent.shouldChange {
