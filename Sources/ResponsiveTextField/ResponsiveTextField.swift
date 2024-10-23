@@ -470,20 +470,24 @@ extension ResponsiveTextField: UIViewRepresentable {
                 let newRange = Range(range, in: currentText),
                 let selection = textField.selectedTextRange
             else {
-                return false // when would this conversion fail?
+                return false
             }
             
             var newText = currentText.replacingCharacters(in: newRange, with: string)
+            let lengthBeforeFormatting = newText.count
             
             if let textFormatter = parent.textFormatter {
                 newText = textFormatter(newText)
             }
             
-            let newCursorPositionOffset: Int
-            if string.isEmpty {
-                newCursorPositionOffset = range.location
+            let formattingDelta = newText.count - lengthBeforeFormatting
+            
+            let newCursorPositionOffset = if string.isEmpty {
+                range.location
+            } else if range.length == currentText.count {
+                newText.count
             } else {
-                newCursorPositionOffset = range.location + string.count
+                range.location + string.count + formattingDelta
             }
             
             if let newPosition = textField.position(from: textField.beginningOfDocument, offset: newCursorPositionOffset) {
