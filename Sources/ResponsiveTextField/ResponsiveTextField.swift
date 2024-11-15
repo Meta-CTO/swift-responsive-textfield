@@ -45,7 +45,7 @@ public struct ResponsiveTextField {
     var isEnabled: Bool
 
     /// Sets the keyboard return type - use the `.responsiveKeyboardReturnType()` modifier.
-    @Environment(\.keyboardReturnKeyType)
+    @Environment(\.responsiveTextFieldReturnKeyType)
     var returnKeyType: UIReturnKeyType
 
     /// Sets the text field font - use the `.responsiveKeyboardFont()` modifier.
@@ -53,7 +53,7 @@ public struct ResponsiveTextField {
     /// - Note: if `adjustsFontForContentSizeCategory` is `true`, the font will only be set
     /// to this value once when the underlying text field is first created.
     ///
-    @Environment(\.textFieldFont)
+    @Environment(\.responsiveTextFieldFont)
     var font: UIFont
 
     /// When `true`, configures the text field to automatically adjust its font based on the content size category.
@@ -65,14 +65,18 @@ public struct ResponsiveTextField {
     var adjustsFontForContentSizeCategory: Bool
 
     /// Sets the text field color - use the `.responsiveTextFieldColor()` modifier.
-    @Environment(\.textFieldTextColor)
-    var textColor: UIColor
+    @Environment(\.responsiveTextFieldTextColor)
+    var textColor: UIColor?
 
     /// Sets the text field alignment - use the `.textFieldTextAlignemnt()` modifier.
-    @Environment(\.textFieldTextAlignment)
+    @Environment(\.responsiveTextFieldTextAlignment)
     var textAlignment: NSTextAlignment
+    
+    /// Sets the text field keyboard type
+    @Environment(\.responsiveTextFieldKeyboardType)
+    var keyboardType: UIKeyboardType
 
-    @Environment(\.responderScheduler)
+    @Environment(\.responsiveTextFieldFirstResponderScheduler)
     private var responderScheduler: AnySchedulerOf<RunLoop>
 
     /// A calllback function that will be called whenever the first responder state changes.
@@ -310,7 +314,9 @@ extension ResponsiveTextField: UIViewRepresentable {
         textField.handleDelete = handleDelete
         textField.supportedStandardEditActions = supportedStandardEditActions
         textField.standardEditActionHandler = standardEditActionHandler
-        textField.placeholder = placeholder
+        if !placeholder.isEmpty {
+            textField.placeholder = placeholder
+        }
         
         if let textFormatter = textFormatter {
             textField.text = textFormatter(text.wrappedValue)
@@ -329,7 +335,6 @@ extension ResponsiveTextField: UIViewRepresentable {
         textField.isSecureTextEntry = isSecure
         textField.font = font
         textField.adjustsFontForContentSizeCategory = adjustsFontForContentSizeCategory
-        textField.textColor = textColor
         textField.textAlignment = textAlignment
         textField.returnKeyType = returnKeyType
         textField.delegate = context.coordinator
@@ -337,6 +342,11 @@ extension ResponsiveTextField: UIViewRepresentable {
             action: #selector(Coordinator.textFieldTextChanged(_:)),
             for: .editingChanged
         )
+        
+        if let textColor {
+            textField.textColor = textColor
+        }
+        
         // This stops the text field from expanding if the text overflows the frame width
         textField.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         return textField
@@ -352,9 +362,15 @@ extension ResponsiveTextField: UIViewRepresentable {
     /// first responder.
     ///
     public func updateUIView(_ uiView: UITextField, context: Context) {
+        configuration.configure(uiView)
         uiView.isEnabled = isEnabled
         uiView.isSecureTextEntry = isSecure
         uiView.returnKeyType = returnKeyType
+        uiView.textAlignment = textAlignment
+        
+        if let textColor {
+            uiView.textColor = textColor
+        }
         
         if let textFormatter = textFormatter {
             uiView.text = textFormatter(text.wrappedValue)
@@ -483,7 +499,7 @@ extension ResponsiveTextField: UIViewRepresentable {
             let formattingDelta = newText.count - lengthBeforeFormatting
             
             let newCursorPositionOffset = if string.isEmpty {
-                range.location
+                max(0, range.location + formattingDelta)
             } else if range.length == currentText.count {
                 newText.count
             } else {
@@ -585,82 +601,26 @@ public extension ResponsiveTextField.Configuration {
 public extension View {
     /// Sets the keyboard return key type on any child `ResponsiveTextField` views.
     func responsiveKeyboardReturnType(_ returnType: UIReturnKeyType) -> some View {
-        environment(\.keyboardReturnKeyType, returnType)
+        environment(\.responsiveTextFieldReturnKeyType, returnType)
+    }
+    
+    /// Sets the keyboard type on any child `ResponsiveTextField` views.
+    func responsiveKeyboardType(_ keyboardType: UIKeyboardType) -> some View {
+        environment(\.responsiveTextFieldKeyboardType, keyboardType)
     }
 
     /// Sets the text field font on any child `ResponsiveTextField` views.
     func responsiveTextFieldFont(_ font: UIFont) -> some View {
-        environment(\.textFieldFont, font)
+        environment(\.responsiveTextFieldFont, font)
     }
 
     /// Sets the text field text color on any child `ResponsiveTextField` views.
     func responsiveTextFieldTextColor(_ color: UIColor) -> some View {
-        environment(\.textFieldTextColor, color)
+        environment(\.responsiveTextFieldTextColor, color)
     }
-
+    
     /// Sets the text field text alignment on any child `ResponsiveTextField` views.
     func responsiveTextFieldTextAlignment(_ alignment: NSTextAlignment) -> some View {
-        environment(\.textFieldTextAlignment, alignment)
-    }
-}
-
-// MARK: - Previews
-
-struct ResponsiveTextField_Previews: PreviewProvider {
-    struct TextFieldPreview: View {
-        let configuration: ResponsiveTextField.Configuration
-
-        @State
-        var text: String = ""
-
-        @State
-        var firstResponderDemand: FirstResponderDemand? = .shouldBecomeFirstResponder
-
-        var body: some View {
-            ResponsiveTextField(
-                placeholder: "Placeholder",
-                text: $text,
-                firstResponderDemand: $firstResponderDemand,
-                configuration: configuration,
-                shouldChange: { $1.count <= 10 }
-            )
-            .fixedSize(horizontal: false, vertical: true)
-            .padding()
-        }
-    }
-
-    static var previews: some View {
-        Group {
-            TextFieldPreview(configuration: .empty)
-                .previewLayout(.sizeThatFits)
-                .previewDisplayName("Empty Field")
-
-            TextFieldPreview(configuration: .email, text: "example@example.com")
-                .previewLayout(.sizeThatFits)
-                .previewDisplayName("Email Field")
-
-            TextFieldPreview(configuration: .email, text: "example@example.com")
-                .responsiveTextFieldFont(.preferredFont(forTextStyle: .title2))
-                .responsiveTextFieldTextColor(.systemBlue)
-                .previewLayout(.sizeThatFits)
-                .previewDisplayName("Text Styling")
-
-            TextFieldPreview(configuration: .email, text: "example@example.com")
-                .responsiveTextFieldFont(.preferredFont(forTextStyle: .body))
-                .responsiveTextFieldTextColor(.systemBlue)
-                .previewLayout(.sizeThatFits)
-                .environment(\.sizeCategory, .extraExtraExtraLarge)
-                .previewDisplayName("Dynamic Font Size")
-
-            TextFieldPreview(configuration: .empty, text: "This is some text")
-                .responsiveTextFieldTextAlignment(.center)
-                .previewLayout(.sizeThatFits)
-                .previewDisplayName("Custom Alignment")
-
-            TextFieldPreview(configuration: .empty, text: "This is some text")
-                .disabled(true)
-                .previewLayout(.sizeThatFits)
-                .previewDisplayName("Disabled Field")
-        }
+        environment(\.responsiveTextFieldTextAlignment, alignment)
     }
 }
