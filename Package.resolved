@@ -6,8 +6,17 @@
         "repositoryURL": "https://github.com/pointfreeco/combine-schedulers.git",
         "state": {
           "branch": null,
-          "revision": "8fee20f993e64bbbf22bc3e3f444758ac2d05692",
-          "version": "0.7.2"
+          "revision": "5928286acce13def418ec36d05a001a9641086f2",
+          "version": "1.0.3"
+        }
+      },
+      {
+        "package": "swift-concurrency-extras",
+        "repositoryURL": "https://github.com/pointfreeco/swift-concurrency-extras",
+        "state": {
+          "branch": null,
+          "revision": "82a4ae7170d98d8538ec77238b7eb8e7199ef2e8",
+          "version": "1.3.1"
         }
       },
       {
@@ -24,8 +33,8 @@
         "repositoryURL": "https://github.com/pointfreeco/xctest-dynamic-overlay",
         "state": {
           "branch": null,
-          "revision": "38bc9242e4388b80bd23ddfdf3071428859e3260",
-          "version": "0.4.0"
+          "revision": "b2ed9eabefe56202ee4939dd9fc46b6241c88317",
+          "version": "1.6.1"
         }
       }
     ]

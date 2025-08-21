@@ -65,7 +65,9 @@ struct ContentView: View {
                     firstResponderDemand: $emailResponderDemand.animation(),
                     configuration: .email,
                     onFirstResponderStateChanged: FirstResponderStateChangeHandler(
-                        handleStateChange: { isEmailFirstResponder = $0 },
+                        handleStateChange: { isFirstResponder, _ in
+                            isEmailFirstResponder = isFirstResponder
+                        },
                         canBecomeFirstResponder: { true },
                         canResignFirstResponder: { true }
                     ).animation(),
