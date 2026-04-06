@@ -481,6 +481,7 @@ extension ResponsiveTextField: UIViewRepresentable {
             replacementString string: String
         ) -> Bool {
             let currentText = textField.text ?? ""
+            print("🟠 shouldChangeCharactersIn - currentText: '\(currentText)' replacement: '\(string)' range: \(range)")
             
             guard
                 let newRange = Range(range, in: currentText),
@@ -518,11 +519,13 @@ extension ResponsiveTextField: UIViewRepresentable {
         }
 
         @objc func textFieldTextChanged(_ textField: UITextField) {
+            print("🔴 textFieldTextChanged - text: '\(textField.text ?? "")' binding: '\(self.text)'")
             self.text = textField.text ?? ""
         }
 
         public func textFieldDidChangeSelection(_ textField: UITextField) {
             let fieldText = textField.text ?? ""
+            print("🟡 textFieldDidChangeSelection - fieldText: '\(fieldText)' binding: '\(self.text)'")
             if fieldText != self.text {
                 self.text = fieldText
             }
