@@ -338,8 +338,8 @@ extension ResponsiveTextField: UIViewRepresentable {
         textField.textAlignment = textAlignment
         textField.returnKeyType = returnKeyType
         textField.delegate = context.coordinator
-        textField.onTextChanged = { [weak context] newText in
-            guard let coordinator = context?.coordinator else { return }
+        let coordinator = context.coordinator
+        textField.onTextChanged = { newText in
             if newText != coordinator.text {
                 print("🟣 onTextChanged (text didSet) - newText: '\(newText)' binding: '\(coordinator.text)'")
                 coordinator.text = newText
