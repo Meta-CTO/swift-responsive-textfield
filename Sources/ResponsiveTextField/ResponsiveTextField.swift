@@ -520,6 +520,13 @@ extension ResponsiveTextField: UIViewRepresentable {
         @objc func textFieldTextChanged(_ textField: UITextField) {
             self.text = textField.text ?? ""
         }
+
+        public func textFieldDidChangeSelection(_ textField: UITextField) {
+            let fieldText = textField.text ?? ""
+            if fieldText != self.text {
+                self.text = fieldText
+            }
+        }
     }
 }
 
