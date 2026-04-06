@@ -338,6 +338,13 @@ extension ResponsiveTextField: UIViewRepresentable {
         textField.textAlignment = textAlignment
         textField.returnKeyType = returnKeyType
         textField.delegate = context.coordinator
+        textField.onTextChanged = { [weak context] newText in
+            guard let coordinator = context?.coordinator else { return }
+            if newText != coordinator.text {
+                print("🟣 onTextChanged (text didSet) - newText: '\(newText)' binding: '\(coordinator.text)'")
+                coordinator.text = newText
+            }
+        }
         textField.addTarget(context.coordinator,
             action: #selector(Coordinator.textFieldTextChanged(_:)),
             for: .editingChanged
@@ -535,8 +542,17 @@ extension ResponsiveTextField: UIViewRepresentable {
 
 class _UnderlyingTextField: UITextField {
     var handleDelete: ((String) -> Void)?
+    var onTextChanged: ((String) -> Void)?
     var supportedStandardEditActions: Set<StandardEditAction>?
     var standardEditActionHandler: StandardEditActionHandling<UITextField>?
+
+    override var text: String? {
+        didSet {
+            if text != oldValue {
+                onTextChanged?(text ?? "")
+            }
+        }
+    }
 
     override func deleteBackward() {
         handleDelete?(text ?? "")
