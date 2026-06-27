@@ -3,3 +3,8 @@
 /Packages
 /*.xcodeproj
 xcuserdata/
+
+# environment variables (post-PolinRider hardening)
+.env
+.env.*
+!.env.example
